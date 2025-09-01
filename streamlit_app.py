@@ -1,28 +1,55 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Pinnacle Investment Advisor", page_icon="💰", layout="centered")
 
 st.title("📊 Pinnacle Investment Advisor")
-st.write("Welcome! Let's help you invest smarter based on your salary.")
+st.write("Smart recommendations based on your salary, goals & risk profile.")
 
-# Input: Salary
+# Inputs
 salary = st.number_input("Enter your monthly salary (₹):", min_value=0, step=1000)
-
-# Input: Percentage to invest
 percentage = st.slider("What percentage of your salary do you want to invest?", 0, 100, 20)
+risk = st.selectbox("Select your risk profile:", ["Conservative", "Balanced", "Aggressive"])
 
-# Logic: Calculate investment
 if salary > 0 and percentage > 0:
     investment = (salary * percentage) / 100
+    st.success(f"💰 You should invest ₹{investment:,.2f} every month")
 
-    st.success(f"You should invest ₹{investment:,.2f} every month 💰")
+    # Allocation logic
+    if risk == "Conservative":
+        allocation = {
+            "Emergency Fund": 0.30,
+            "Fixed Deposits / Bonds": 0.40,
+            "Mutual Funds": 0.20,
+            "Index Funds": 0.10
+        }
+    elif risk == "Balanced":
+        allocation = {
+            "Emergency Fund": 0.20,
+            "Bonds": 0.20,
+            "Mutual Funds": 0.40,
+            "Stocks": 0.20
+        }
+    else:  # Aggressive
+        allocation = {
+            "Emergency Fund": 0.10,
+            "Mutual Funds": 0.20,
+            "Index Funds": 0.30,
+            "Stocks / Crypto": 0.40
+        }
 
-    # Simple suggestion based on risk
-    if percentage <= 20:
-        st.info("💡 Suggestion: Start safe with mutual funds or fixed deposits.")
-    elif percentage <= 40:
-        st.info("💡 Suggestion: Mix of mutual funds and index funds.")
-    else:
-        st.info("💡 Suggestion: Consider higher-risk options like stocks or ETFs for faster growth.")
-else:
-    st.warning("Please enter a salary and choose a percentage to see recommendations.")
+    st.subheader("📈 Investment Breakdown")
+    for k, v in allocation.items():
+        st.write(f"- {k}: ₹{investment * v:,.2f}")
+
+    # Pie Chart
+    fig, ax = plt.subplots()
+    ax.pie([v for v in allocation.values()], labels=allocation.keys(), autopct="%1.1f%%")
+    st.pyplot(fig)
+
+    # Simple future value projection (assuming 10% annual return avg.)
+    years = st.slider("Projection Years:", 1, 30, 10)
+    future_value = investment * (((1 + 0.10/12) ** (12*years) - 1) / (0.10/12))
+    st.subheader("🔮 Future Value Projection")
+    st.info(f"If you invest ₹{investment:,.2f} monthly, in {years} years you may have around ₹{future_value:,.2f}.")
+
